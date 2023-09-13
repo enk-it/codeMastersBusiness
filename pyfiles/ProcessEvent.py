@@ -112,8 +112,7 @@ class ProcessMsg:
             teleid, uuid, name, surname, position, project, regdate, picture = profile
             data = {"name": name, "surname": surname, "position": position, "project": project, "regdate": regdate}
 
-            self.bot.send_photo(self.chatID, picture, caption=format_profile_data(data),
-                                reply_markup=inline_profile_card(uuid))
+            self.bot.send_photo(self.chatID, picture, caption=format_profile_data(data), reply_markup=inline_profile_card(uuid))
             self.state = self.dbc.set_state("wait_choose_action")
         else:
             self.bot.send_message(self.chatID, self.replicas["found_more_than_one"],
@@ -125,8 +124,19 @@ class ProcessMsg:
             self.state = self.dbc.set_state("menu")
             self.menu()
         else:
-            # todo
-            pass
+            uuid = self.reply_markup_data.split(':')[1]
+
+            all_profiles = self.dbc.get_profiles()
+            profile = [i for i in all_profiles if i[1] == uuid][0]
+
+            teleid, uuid, name, surname, position, project, regdate, picture = profile
+
+            data = {"name": name, "surname": surname, "position": position, "project": project, "regdate": regdate}
+
+
+            self.bot.send_photo(self.chatID, picture, caption=format_profile_data(data), reply_markup=inline_profile_card(uuid))
+            self.state = self.dbc.set_state('wait_choose_action')
+
 
 
     def wait_choose_action(self):
