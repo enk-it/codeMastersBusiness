@@ -23,6 +23,7 @@ def main():
 
     @bot.message_handler(content_types=['text', 'photo'])
     def get_msg(msg):
+        print(msg)
         ProcessMsg(replicas, cursor, connection, bot, msg, 'msg')
 
     @bot.callback_query_handler(func=lambda call: True)

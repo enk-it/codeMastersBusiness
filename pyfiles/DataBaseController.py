@@ -66,6 +66,12 @@ class DataBaseController:
         count = self.cursor.execute(sqlite_insert_query, data_tuple)
         self.connection.commit()
 
+
+    def delete_profile(self, uuid):
+        sql_delete_query = "DELETE from profiles where uuid = ?;"
+        self.cursor.execute(sql_delete_query, (uuid, ))
+        self.connection.commit()
+
     def get_profiles(self):
         self.cursor.execute("SELECT * FROM profiles where telegramID={uid};".format(uid=self.user_id))
 

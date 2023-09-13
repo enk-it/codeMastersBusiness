@@ -58,6 +58,10 @@ class ProcessMsg:
             elif self.msg.text == self.replicas["cancel"]:
                 print('User cancelled the process')
                 self.state = self.dbc.set_state('menu')
+
+            if self.msg.content_type == "photo" and self.state not in ["wait_picture"]:
+                return
+
             # else:
             #     if self.state is None:
             #         self.dbc.reg_user()
@@ -120,6 +124,9 @@ class ProcessMsg:
         if self.reply_markup_data == "to_start":
             self.state = self.dbc.set_state("menu")
             self.menu()
+        else:
+            # todo
+            pass
 
 
     def wait_choose_action(self):
@@ -127,9 +134,20 @@ class ProcessMsg:
             self.state = self.dbc.set_state("menu")
             self.menu()
         elif "edit:" in self.reply_markup_data:
+            # todo
             pass
         elif "delete:" in self.reply_markup_data:
-            pass
+            uuid = self.reply_markup_data.split(':')[1]
+            try:
+                self.dbc.delete_profile(uuid)
+                self.bot.send_message(self.chatID, self.replicas["deleted_succesfully"], reply_markup=reply_menu())
+            except Exception as e:
+                logging.error(e)
+                print(e)
+            finally:
+                self.state = self.dbc.set_state("menu")
+                self.menu()
+
 
     def wait_name(self):
         name = self.msg.text.strip()
@@ -194,6 +212,8 @@ class ProcessMsg:
                 self.state = self.dbc.set_state('menu')
                 self.menu()
                 return
+        else:
+            return
 
         data = self.dbc.get_temp_user()
 
@@ -209,10 +229,8 @@ class ProcessMsg:
             self.dbc.set_temp_user({})
             self.bot.send_message(self.chatID, self.replicas['error_while_adding'])
             self.state = self.dbc.set_state('menu')
-            self.menu()
         else:
             self.dbc.set_temp_user({})
             self.bot.send_photo(self.chatID, bytes_picture, caption=format_profile_data(data),
                                 reply_markup=inline_profile_card(data["uuid"]))
-            self.state = self.dbc.set_state('menu')
-            self.menu()
+            self.state = self.dbc.set_state('wait_choose_action')

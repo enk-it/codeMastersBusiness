@@ -2,6 +2,8 @@ from telebot import types
 import json
 
 
+
+
 def inline_suggest_cards(profiles):
     markup_inline = types.InlineKeyboardMarkup()
     markup_inline.row_width = len(profiles)
