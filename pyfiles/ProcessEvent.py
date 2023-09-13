@@ -6,7 +6,6 @@ import json
 import uuid
 import time
 
-
 logging.basicConfig(level=logging.INFO, filename="bot_cm.log", filemode="a",
                     format="%(asctime)s %(levelname)s %(message)s")
 
@@ -36,7 +35,11 @@ class ProcessMsg:
             'wait_surname': self.wait_surname,
             'wait_position': self.wait_position,
             'wait_project': self.wait_project,
-            'wait_picture': self.wait_picture
+            'wait_picture': self.wait_picture,
+
+            'wait_name_find': self.wait_name_find,
+            'wait_choose_doubles': self.wait_choose_doubles,
+            'wait_choose_action': self.wait_choose_action
         }
 
         if actionType == 'msg':
@@ -51,7 +54,7 @@ class ProcessMsg:
                 self.state = self.dbc.set_state('first_start')
             elif self.msg.text == self.replicas["to_start"]:
                 print('User be back to menu')
-                self.state = self.dbc.set_state('start')
+                self.state = self.dbc.set_state('menu')
             elif self.msg.text == self.replicas["cancel"]:
                 print('User cancelled the process')
                 self.state = self.dbc.set_state('menu')
@@ -60,8 +63,11 @@ class ProcessMsg:
             #         self.dbc.reg_user()
             #     self.state = self.dbc.get_state()
         elif actionType == 'call':
-            pass
+            self.reply_markup_data = self.msg.data
             self.chatID = self.msg.message.chat.id
+
+            if self.state not in ["wait_choose_action", "wait_choose_doubles"]:
+                return
 
         self.stateManager[self.state]()
 
@@ -80,10 +86,50 @@ class ProcessMsg:
             self.bot.send_message(self.chatID, self.replicas['enter_name'], reply_markup=reply_back())
             self.state = self.dbc.set_state('wait_name')
         elif self.msg.text == self.replicas["get_user"]:
-            pass
+            self.bot.send_message(self.chatID, self.replicas['enter_id_to_find'], reply_markup=reply_back())
+            self.state = self.dbc.set_state('wait_name_find')
         else:
             self.bot.send_message(self.chatID, self.replicas['not_found_command'], reply_markup=reply_menu())
             self.state = self.dbc.set_state("menu")
+
+    def wait_name_find(self):
+        search_criteria = self.msg.text
+
+        all_profiles = self.dbc.get_profiles()
+
+        suggested_profiles = filter_profiles(search_criteria, all_profiles)
+
+        if len(suggested_profiles) == 0:
+            self.bot.send_message(self.chatID, self.replicas['not_found_profiles'], reply_markup=reply_menu())
+            self.state = self.dbc.set_state("menu")
+        elif len(suggested_profiles) == 1:
+            profile = suggested_profiles[0]
+
+            teleid, uuid, name, surname, position, project, regdate, picture = profile
+            data = {"name": name, "surname": surname, "position": position, "project": project, "regdate": regdate}
+
+            self.bot.send_photo(self.chatID, picture, caption=format_profile_data(data),
+                                reply_markup=inline_profile_card(uuid))
+            self.state = self.dbc.set_state("wait_choose_action")
+        else:
+            self.bot.send_message(self.chatID, self.replicas["found_more_than_one"],
+                                  reply_markup=inline_suggest_cards(suggested_profiles))
+            self.state = self.dbc.set_state("wait_choose_doubles")
+
+    def wait_choose_doubles(self):
+        if self.reply_markup_data == "to_start":
+            self.state = self.dbc.set_state("menu")
+            self.menu()
+
+
+    def wait_choose_action(self):
+        if self.reply_markup_data == "to_start":
+            self.state = self.dbc.set_state("menu")
+            self.menu()
+        elif "edit:" in self.reply_markup_data:
+            pass
+        elif "delete:" in self.reply_markup_data:
+            pass
 
     def wait_name(self):
         name = self.msg.text.strip()
@@ -152,17 +198,21 @@ class ProcessMsg:
         data = self.dbc.get_temp_user()
 
         data["regdate"] = time.strftime('%d.%m.%Y %H:%M')
+        data["uuid"] = str(uuid.uuid4())
 
-        self.dbc.reg_profile(str(uuid.uuid4()), data["name"], data["surname"], data["position"], data["project"], data["regdate"], bytes_picture)
-
-        self.dbc.set_temp_user({})
-        self.bot.send_photo(self.chatID, bytes_picture, caption=format_profile_data(data))
-        self.state = self.dbc.set_state('menu')
-        self.menu()
-
-
-
-
-
-
-
+        try:
+            self.dbc.reg_profile(data["uuid"], data["name"], data["surname"], data["position"], data["project"],
+                                 data["regdate"], bytes_picture)
+        except Exception as e:
+            logging.error(e)
+            print(e)
+            self.dbc.set_temp_user({})
+            self.bot.send_message(self.chatID, self.replicas['error_while_adding'])
+            self.state = self.dbc.set_state('menu')
+            self.menu()
+        else:
+            self.dbc.set_temp_user({})
+            self.bot.send_photo(self.chatID, bytes_picture, caption=format_profile_data(data),
+                                reply_markup=inline_profile_card(data["uuid"]))
+            self.state = self.dbc.set_state('menu')
+            self.menu()

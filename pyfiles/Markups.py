@@ -2,15 +2,31 @@ from telebot import types
 import json
 
 
-# def inline_mu():
-#     markup_inline = types.InlineKeyboardMarkup()
-#     markup_inline.row_width = 2
-#     item1 = types.InlineKeyboardButton(text='Лазерная резка', callback_data='laser')
-#     item2 = types.InlineKeyboardButton(text='Сборка', callback_data='build')
-#     item3 = types.InlineKeyboardButton(text='Упаковка', callback_data='pack')
-#     item4 = types.InlineKeyboardButton(text='Покраска', callback_data='paint')
-#     markup_inline.add(item1, item2, item3, item4)
-#     return markup_inline
+def inline_suggest_cards(profiles):
+    markup_inline = types.InlineKeyboardMarkup()
+    markup_inline.row_width = len(profiles)
+
+    for profile in profiles:
+        teleid, uuid, name, surname, position, project, regdate, picture = profile
+
+        item = types.InlineKeyboardButton(text=f'{name} {surname} {project} {position}', callback_data='choose:' + uuid)
+        markup_inline.add(item)
+
+    to_start = types.InlineKeyboardButton(text=replicas["to_start"], callback_data='to_start')
+    markup_inline.add(to_start)
+
+    return markup_inline
+
+
+def inline_profile_card(uuid):
+    markup_inline = types.InlineKeyboardMarkup()
+    markup_inline.row_width = 2
+    item1 = types.InlineKeyboardButton(text=replicas["edit"], callback_data='edit:' + uuid)
+    item2 = types.InlineKeyboardButton(text=replicas["delete"], callback_data='delete:' + uuid)
+    item3 = types.InlineKeyboardButton(text=replicas["to_start"], callback_data='to_start')
+    markup_inline.add(item1, item2)
+    markup_inline.add(item3)
+    return markup_inline
 
 
 def reply_menu():

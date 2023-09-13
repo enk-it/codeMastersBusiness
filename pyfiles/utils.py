@@ -18,13 +18,12 @@ def make_unique_name(name, names):
 
 def format_profile_data(data):
     text = "ℹ️ Информация о сотруднике:\n"
-    text += "🆔 Ф.И.: {name} {surname}\n".format(name=data['name'], surname=data['surname'])
+    text += "🆔 Ф.И: {name} {surname}\n".format(name=data['name'], surname=data['surname'])
     text += "📊 Должность: {position}\n".format(position=data['position'])
     text += "🛠 Проект: {project}\n".format(project=data['project'])
     text += "🗓 Дата регистрации: {regdate}".format(regdate=data['regdate'])
 
     return text
-
 
 
 def get_default_picture():
@@ -51,3 +50,21 @@ def read_token():
     with open('variables/token.json', 'r') as f:
         json_data = json.loads(f.read())
         return json_data["token"]
+
+
+def filter_profiles(criteria, profiles):
+    res = []
+    criteria = criteria.strip().lower().split(' ')
+
+    for profile in profiles:
+        teleid, uuid, name, surname, position, project, regdate, picture = profile
+
+        if len(criteria) == 1:
+            if name.lower() == criteria[0] or surname.lower() == criteria[0]:
+                res.append(profile)
+        elif len(criteria) == 2:
+            if (name.lower() == criteria[0] and surname.lower() == criteria[1]) or (
+                    name.lower() == criteria[1] and surname.lower() == criteria[0]):
+                res.append(profile)
+
+    return res

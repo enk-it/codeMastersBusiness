@@ -23,12 +23,12 @@ def main():
 
     @bot.message_handler(content_types=['text', 'photo'])
     def get_msg(msg):
-        print(msg)
         ProcessMsg(replicas, cursor, connection, bot, msg, 'msg')
 
     @bot.callback_query_handler(func=lambda call: True)
     def callback_inline(call):
-        ProcessMsg(replicas, connection, bot, call, 'call')
+        print(call)
+        ProcessMsg(replicas, cursor, connection, bot, call, 'call')
 
     bot.polling(none_stop=True, interval=0)
 

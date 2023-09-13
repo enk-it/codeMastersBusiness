@@ -65,3 +65,11 @@ class DataBaseController:
         data_tuple = (self.user_id, uuid, name, surname, position, project, regdate, picture)
         count = self.cursor.execute(sqlite_insert_query, data_tuple)
         self.connection.commit()
+
+    def get_profiles(self):
+        self.cursor.execute("SELECT * FROM profiles where telegramID={uid};".format(uid=self.user_id))
+
+        data = self.cursor.fetchall()
+
+        return data
+
