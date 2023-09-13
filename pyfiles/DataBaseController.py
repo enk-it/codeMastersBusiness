@@ -60,8 +60,8 @@ class DataBaseController:
 
         return data
 
-    def reg_profile(self, name: str, surname: str, position: str, project: str, picture: bytes):
-        sqlite_insert_query = "INSERT INTO profiles (telegramID, name, surname, position, project, picture) VALUES (?, ?, ?, ?, ?, ?);"
-        data_tuple = (self.user_id, name, surname, position, project, picture)
+    def reg_profile(self, uuid: str, name: str, surname: str, position: str, project: str, regdate: str, picture: bytes):
+        sqlite_insert_query = "INSERT INTO profiles (telegramID, uuid, name, surname, position, project, regdate, picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"
+        data_tuple = (self.user_id, uuid, name, surname, position, project, regdate, picture)
         count = self.cursor.execute(sqlite_insert_query, data_tuple)
         self.connection.commit()

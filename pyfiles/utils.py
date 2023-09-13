@@ -16,6 +16,17 @@ def make_unique_name(name, names):
         i += 1
 
 
+def format_profile_data(data):
+    text = "ℹ️ Информация о сотруднике:\n"
+    text += "🆔 Ф.И.: {name} {surname}\n".format(name=data['name'], surname=data['surname'])
+    text += "📊 Должность: {position}\n".format(position=data['position'])
+    text += "🛠 Проект: {project}\n".format(project=data['project'])
+    text += "🗓 Дата регистрации: {regdate}".format(regdate=data['regdate'])
+
+    return text
+
+
+
 def get_default_picture():
     with open("variables/default_picture.png", 'rb') as f:
         bytes = f.read()

@@ -3,6 +3,8 @@ from pyfiles.DataBaseController import DataBaseController as dbc
 from pyfiles.utils import *
 import logging
 import json
+import uuid
+import time
 
 
 logging.basicConfig(level=logging.INFO, filename="bot_cm.log", filemode="a",
@@ -125,39 +127,38 @@ class ProcessMsg:
         self.state = self.dbc.set_state('wait_picture')
 
     def wait_picture(self):
+        bytes_picture = None
+
         if self.msg.text == self.replicas["default_picture"]:
             bytes_picture = get_default_picture()
-            data = self.dbc.get_temp_user()
+        elif self.msg.content_type == "photo":
+            try:
+                photo = self.msg.photo[2]
+            except Exception as e:
+                logging.error(e)
+                print('Не удалось уменьшить картинку')
+                photo = self.msg.photo[0]
+            file_id = photo.file_id
+            file_url = self.bot.get_file_url(file_id)
+            try:
+                bytes_picture = get_picture(file_url)
+            except Exception as e:
+                logging.error(e)
+                print(e)
+                self.state = self.dbc.set_state('menu')
+                self.menu()
+                return
 
-            self.dbc.reg_profile(data["name"], data["surname"], data["position"], data["project"], bytes_picture)
+        data = self.dbc.get_temp_user()
 
-            self.dbc.set_temp_user({})
-            self.bot.send_photo(self.chatID, bytes_picture)
-            self.state = self.dbc.set_state('menu')
-            self.menu()
-        else:
-            if self.msg.content_type == "photo":
-                try:
-                    photo = self.msg.photo[2]
-                except Exception as e:
-                    logging.error(e)
-                    photo = self.msg.photo[0]
-                file_id = photo.file_id
-                file_url = self.bot.get_file_url(file_id)
-                try:
-                    bytes_picture = get_picture(file_url)
-                    data = self.dbc.get_temp_user()
+        data["regdate"] = time.strftime('%d.%m.%Y %H:%M')
 
-                    self.dbc.reg_profile(data["name"], data["surname"], data["position"], data["project"], bytes_picture)
+        self.dbc.reg_profile(str(uuid.uuid4()), data["name"], data["surname"], data["position"], data["project"], data["regdate"], bytes_picture)
 
-                    self.dbc.set_temp_user({})
-                    self.bot.send_photo(self.chatID, bytes_picture)
-                    self.state = self.dbc.set_state('menu')
-                    self.menu()
-
-
-                except Exception as e:
-                    logging.error(e)
+        self.dbc.set_temp_user({})
+        self.bot.send_photo(self.chatID, bytes_picture, caption=format_profile_data(data))
+        self.state = self.dbc.set_state('menu')
+        self.menu()
 
 
 
