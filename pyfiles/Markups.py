@@ -31,6 +31,22 @@ def inline_profile_card(uuid):
     return markup_inline
 
 
+def inline_edit_profile(uuid):
+    markup_inline = types.InlineKeyboardMarkup()
+    markup_inline.row_width = 5
+    item1 = types.InlineKeyboardButton(text=replicas["edit_name"], callback_data='edit_name:' + uuid)
+    item2 = types.InlineKeyboardButton(text=replicas["edit_surname"], callback_data='edit_surname:' + uuid)
+    item3 = types.InlineKeyboardButton(text=replicas["edit_project"], callback_data='edit_project:' + uuid)
+    item4 = types.InlineKeyboardButton(text=replicas["edit_position"], callback_data='edit_position:' + uuid)
+    item5 = types.InlineKeyboardButton(text=replicas["edit_picture"], callback_data='edit_picture:' + uuid)
+
+    item6 = types.InlineKeyboardButton(text=replicas["to_start"], callback_data='to_start')
+    markup_inline.add(item1, item2, item5)
+    markup_inline.add(item3, item4)
+    markup_inline.add(item6)
+    return markup_inline
+
+
 def reply_menu():
     markup = types.ReplyKeyboardMarkup()
     markup.one_time_keyboard = True

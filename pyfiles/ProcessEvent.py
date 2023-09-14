@@ -39,7 +39,8 @@ class ProcessMsg:
 
             'wait_name_find': self.wait_name_find,
             'wait_choose_doubles': self.wait_choose_doubles,
-            'wait_choose_action': self.wait_choose_action
+            'wait_choose_action': self.wait_choose_action,
+            'wait_edit_action': self.wait_edit_action
         }
 
         if actionType == 'msg':
@@ -70,8 +71,11 @@ class ProcessMsg:
             self.reply_markup_data = self.msg.data
             self.chatID = self.msg.message.chat.id
 
-            if self.state not in ["wait_choose_action", "wait_choose_doubles"]:
+            if self.state not in ["wait_choose_action", "wait_choose_doubles", "wait_edit_action"]:
                 return
+
+            if self.reply_markup_data == "to_start":
+                self.state = self.dbc.set_state("menu")
 
         self.stateManager[self.state]()
 
@@ -112,7 +116,8 @@ class ProcessMsg:
             teleid, uuid, name, surname, position, project, regdate, picture = profile
             data = {"name": name, "surname": surname, "position": position, "project": project, "regdate": regdate}
 
-            self.bot.send_photo(self.chatID, picture, caption=format_profile_data(data), reply_markup=inline_profile_card(uuid))
+            self.bot.send_photo(self.chatID, picture, caption=format_profile_data(data),
+                                reply_markup=inline_profile_card(uuid))
             self.state = self.dbc.set_state("wait_choose_action")
         else:
             self.bot.send_message(self.chatID, self.replicas["found_more_than_one"],
@@ -120,31 +125,25 @@ class ProcessMsg:
             self.state = self.dbc.set_state("wait_choose_doubles")
 
     def wait_choose_doubles(self):
-        if self.reply_markup_data == "to_start":
-            self.state = self.dbc.set_state("menu")
-            self.menu()
-        else:
-            uuid = self.reply_markup_data.split(':')[1]
-
-            all_profiles = self.dbc.get_profiles()
-            profile = [i for i in all_profiles if i[1] == uuid][0]
-
-            teleid, uuid, name, surname, position, project, regdate, picture = profile
-
-            data = {"name": name, "surname": surname, "position": position, "project": project, "regdate": regdate}
-
-
-            self.bot.send_photo(self.chatID, picture, caption=format_profile_data(data), reply_markup=inline_profile_card(uuid))
-            self.state = self.dbc.set_state('wait_choose_action')
-
-
+        uuid = self.reply_markup_data.split(':')[1]
+        all_profiles = self.dbc.get_profiles()
+        profile = [i for i in all_profiles if i[1] == uuid][0]
+        teleid, uuid, name, surname, position, project, regdate, picture = profile
+        data = {"name": name, "surname": surname, "position": position, "project": project, "regdate": regdate}
+        self.bot.send_photo(self.chatID, picture, caption=format_profile_data(data),
+                            reply_markup=inline_profile_card(uuid))
+        self.state = self.dbc.set_state('wait_choose_action')
 
     def wait_choose_action(self):
-        if self.reply_markup_data == "to_start":
-            self.state = self.dbc.set_state("menu")
-            self.menu()
-        elif "edit:" in self.reply_markup_data:
-            # todo
+        if "edit:" in self.reply_markup_data:
+            uuid = self.reply_markup_data.split(':')[1]
+
+            message_id = self.msg.message.id
+
+            self.bot.edit_message_reply_markup(self.chatID, message_id, reply_markup=inline_edit_profile(uuid))
+
+            self.state = self.dbc.set_state("wait_edit_action")
+
             pass
         elif "delete:" in self.reply_markup_data:
             uuid = self.reply_markup_data.split(':')[1]
@@ -158,6 +157,19 @@ class ProcessMsg:
                 self.state = self.dbc.set_state("menu")
                 self.menu()
 
+    def wait_edit_action(self):
+        # todo
+        action, uuid = self.reply_markup_data.split(':')
+        if action == "edit_name":
+            pass
+        elif action == "edit_surname":
+            pass
+        elif action == "edit_project":
+            pass
+        elif action == "edit_position":
+            pass
+        elif action == "edit_picture":
+            pass
 
     def wait_name(self):
         name = self.msg.text.strip()

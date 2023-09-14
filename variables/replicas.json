@@ -13,6 +13,12 @@
   "found_more_than_one": "\uD83D\uDD0D Найдено больше одного соответствия",
   "deleted_succesfully": "✅ Успешно удалён один профиль",
 
+  "edit_name": "Имя",
+  "edit_surname": "Фамилия",
+  "edit_project": "Проект",
+  "edit_position": "Должность",
+  "edit_picture": "Аватарка",
+
   "edit": "✂\uFE0F Редактировать",
   "delete": "\uD83D\uDDD1 Удалить",
   "add_user": "✅ Добавить сотрудника",
