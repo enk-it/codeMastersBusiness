@@ -12,6 +12,8 @@
   "not_found_profiles": "0\uFE0F⃣ Сотрудник с такими параметрами не найден",
   "found_more_than_one": "\uD83D\uDD0D Найдено больше одного соответствия",
   "deleted_succesfully": "✅ Успешно удалён один профиль",
+  "updated_succesfully": "✅ Успешно обновлён один профиль",
+  "error": "❌ Ошибка! Попробуйте снова",
 
   "edit_name": "Имя",
   "edit_surname": "Фамилия",

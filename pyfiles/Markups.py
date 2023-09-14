@@ -1,7 +1,9 @@
 from telebot import types
 import json
 
-
+def remove():
+    markup_remove = types.InlineKeyboardMarkup()
+    return markup_remove
 
 
 def inline_suggest_cards(profiles):
